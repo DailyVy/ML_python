@@ -123,6 +123,8 @@ if __name__ == "__main__":
     #         if group_img[y, x] == 255:
     #             label += 1
     #             cv2.floodFill(group_img, None, (x, y), label)
+    #
+    # cv2.imshow("group", group_img)
 
     #############################################################################################
     # # 그냥 ConnectedComponent
@@ -163,11 +165,57 @@ if __name__ == "__main__":
     centroids : 중점 좌표 
     """
 
+    # 블롭 구하기
+    n_blob, label_img, stats, centroids = cv2.connectedComponentsWithStats(dst)
+    print("connectedComponentsWithStats")
+    # print(n_blob) # 왜 21개지?? ==> 아 배경 포함.... 배경이 0이다.
+    # print(label_img)
+    print(stats)
+    # print(centroids)
+
+
+    # 블롭을 화면에 show
+    # n_blob : 0 은 배경이므로 뺀다.
+    show_img = img.copy()
+    # cv2.imshow("img", img)
+    for i in range(1, n_blob):
+        x, y, w, h, area = stats[i]
+
+        # 너무 작은 블롭은 제외한다. ==> 다 출력해보니까 원하는 딱 20개의 blob이 있긴해(배경제외하고)
+        if area > 20:
+            # width 가 너무 작을경우 좀 더 늘려주자
+            if h / w > 3:
+                x -= w
+                w *= 3
+            # 박스를 조금 더 크게 그려줍시다.
+            x -= 5
+            y -= 5
+            w += 10
+            h += 10
+            cv2.rectangle(show_img, (x, y, w, h), (255, 0, 255), thickness=2)
+
+            # detection 할 관심영역
+            crop = dst[y:y+h, x:x+w]
+            # 이제 이거 resize
+            resizeImg = cv2.resize(crop, (28, 28))
+            roi = np.expand_dims(resizeImg, axis=-1)
+            roi = np.expand_dims(roi, axis=0)
+
+            model = load_model("./model/cnn_mlp_practice.h5")
+            predict = model.predict(roi)
+            preVal = predict.argmax()
+
+            # cv2.putText(img, text, point, fontFace, fontsize, color [, thickness, lineType])
+            cv2.putText(show_img, f'{preVal}', (x, y + 10), cv2.FONT_HERSHEY_DUPLEX, 1, (255,0,100))
+
+
+    # cv2.imshow("roi", roi)
+    cv2.imshow("predict", show_img)
 
 
 
-    w_width = 40
-    w_height = 80
+    # w_width = 40
+    # w_height = 80
 
     # for y in range(0, 100, 65):
     #     for x in range(536):

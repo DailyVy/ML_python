@@ -31,4 +31,4 @@ if __name__ == "__main__":
     # x, y 다 만들었으면 fit하면 된다.
     model.fit(train_data, train_label, epochs=10, batch_size=200)
     # 모델 저장하자
-    # model.save("mlp_0523_1.h5")
+    # model.save("./model/mlp_0523_1.h5")
